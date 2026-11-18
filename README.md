@@ -7,6 +7,8 @@ WebView and skips video ads.
 Go to the **Releases** page and download `AdFreePlayer.apk`. Install it, allow
 "Install unknown apps" for your browser/file manager if Android asks.
 
+https://github.com/itzharsh01126/ad-free-player/releases/download/V1.0/AdFreePlayer.apk
+
 ## Disclaimer
 - This is an **unofficial** app. It is **not affiliated with, endorsed by or sponsored by YouTube or Google**.
   YouTube is a trademark of Google LLC.
