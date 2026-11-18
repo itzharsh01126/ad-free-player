@@ -16,14 +16,25 @@ jobs:
       - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.5
-      - name: Decode signing key
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.jks"
+      - name: Prepare signing key
+        env:
+          B64: ${{ secrets.KEYSTORE_BASE64 }}
+          PW: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          printf '%s' "$B64" | tr -d ' \r\n' | base64 -d > "$RUNNER_TEMP/release.jks"
+          CLEAN=$(printf '%s' "$PW" | tr -d ' \r\n')
+          echo "::add-mask::$CLEAN"
+          echo "SIGN_PW=$CLEAN" >> "$GITHUB_ENV"
+          if ! keytool -list -keystore "$RUNNER_TEMP/release.jks" -storepass "$CLEAN" > /dev/null 2>&1; then
+            echo "::error::KEYSTORE_PASSWORD or KEYSTORE_BASE64 secret is wrong. Re-add both by copy-paste."
+            exit 1
+          fi
       - name: Build release APK
         env:
           KEYSTORE_PATH: ${{ runner.temp }}/release.jks
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_PASSWORD: ${{ env.SIGN_PW }}
+          KEY_ALIAS: adfree
+          KEY_PASSWORD: ${{ env.SIGN_PW }}
         run: gradle assembleRelease
       - name: Rename APK
         run: cp app/build/outputs/apk/release/app-release.apk AdFreePlayer.apk
